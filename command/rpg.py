@@ -72,6 +72,26 @@ class Paper(commands.Cog):
         else:
             await interaction.response.send_message("등록 중 오류가 발생했습니다.", ephemeral=True)
 
+    @app_commands.command(name="자기소개", description="자기소개를 설정하거나 확인합니다 (50자 이내)")
+    @app_commands.describe(bio="새로운 자기소개 (미입력 시 현재 소개 출력)")
+    async def bio_command(self, interaction: Interaction, bio: str = None):
+        user_id = str(interaction.user.id)
+        if not db.get_user(user_id):
+            await interaction.response.send_message("먼저 `/유저 등록`을 통해 등록해야 합니다!", ephemeral=True)
+            return
+        
+        if bio is None:
+            current_bio = db.get_bio(user_id)
+            if current_bio:
+                await interaction.response.send_message(f"현재 자기소개: {current_bio}", ephemeral=True)
+            else:
+                await interaction.response.send_message("자기소개가 설정되지 않았습니다. `/자기소개 [내용]`으로 설정하세요!", ephemeral=True)
+        else:
+            if db.set_bio(user_id, bio):
+                await interaction.response.send_message(f"자기소개가 설정되었습니다: {bio}", ephemeral=True)
+            else:
+                await interaction.response.send_message("자기소개는 50자 이내로 설정해야 합니다!", ephemeral=True)
+
     @app_commands.command(name="게임 Rpg", description="Rpg 게임을 시작한다")
     @has_admin_role()
     async def paper_command(self, interaction: Interaction) -> None:
