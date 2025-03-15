@@ -41,10 +41,9 @@ class MyBot(commands.Bot):
         
         self.config = config
         self.initial_extensions = [
-            "command.paper",
             "command.dev",  # 개발 명령어 추가
             # 추가 확장기능은 여기에 "폴더.파일명" 형식으로 추가
-        ]z
+        ]
 
     async def setup_hook(self):
         """확장 기능 로드 및 명령어 동기화를 통한 봇 설정"""
