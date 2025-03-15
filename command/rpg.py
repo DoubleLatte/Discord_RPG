@@ -4,8 +4,8 @@ from discord import app_commands, Interaction, Embed, ButtonStyle
 from discord.ext import commands
 from discord.ui import Button, View
 from datetime import datetime
-from command.quest.quest_handlers import handle_slime_quest, handle_judge_quest
-from util.util import has_admin_role  # 절대 경로로 util에서 가져오기
+from command.quest.ezquest import handle_slime_quest, handle_judge_quest
+from util.permission import has_admin_role  # 절대 경로로 util에서 가져오기
 
 class QuestView(View):
     def __init__(self):
