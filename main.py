@@ -5,6 +5,7 @@ import discord
 from discord.ext import commands
 from discord import Game, Status
 
+
 def resource_path(relative_path):
     """리소스 파일의 절대 경로를 반환 (개발 및 PyInstaller 환경 모두 지원)"""
     try:
@@ -13,6 +14,7 @@ def resource_path(relative_path):
     except Exception:
         base_path = os.path.abspath(".")
     return os.path.join(base_path, relative_path)
+
 
 def load_config():
     """config.yml 파일에서 설정 불러오기"""
@@ -26,6 +28,7 @@ def load_config():
     except yaml.YAMLError as e:
         print(f"{config_path} 파일 읽기 오류: {e}")
         sys.exit(1)
+
 
 class MyBot(commands.Bot):
     def __init__(self, config):
@@ -41,7 +44,8 @@ class MyBot(commands.Bot):
         
         self.config = config
         self.initial_extensions = [
-            "command.dev",  # 개발 명령어 추가
+            "command.dev",
+			"command.rpg"  	# 개발 명령어 추가
             # 추가 확장기능은 여기에 "폴더.파일명" 형식으로 추가
         ]
 
@@ -73,8 +77,9 @@ class MyBot(commands.Bot):
         print("===============")
         
         # 봇 활동 상태 설정
-        game = Game("~~~ 하는중")
+        game = Game("RPG 제작중")
         await self.change_presence(status=Status.online, activity=game)
+
 
 def main():
     """봇의 주 실행 함수"""
@@ -93,6 +98,7 @@ def main():
     except Exception as e:
         print(f"예상치 못한 오류 발생: {e}")
         sys.exit(1)
+
 
 if __name__ == "__main__":
     main()
