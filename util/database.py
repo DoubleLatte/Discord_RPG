@@ -23,7 +23,7 @@ class Database:
         if conn:
             try:
                 c = conn.cursor()
-                # 캐릭터 테이블
+                # 캐릭터 테이블 (변경 없음)
                 c.execute('''
                     CREATE TABLE IF NOT EXISTS characters (
                         discord_id TEXT PRIMARY KEY,
@@ -46,7 +46,7 @@ class Database:
                         cash INTEGER DEFAULT 0
                     )
                 ''')
-                # 자기소개 테이블
+                # 자기소개 테이블 (변경 없음)
                 c.execute('''
                     CREATE TABLE IF NOT EXISTS bio (
                         discord_id TEXT PRIMARY KEY,
@@ -54,14 +54,25 @@ class Database:
                         FOREIGN KEY (discord_id) REFERENCES characters (discord_id)
                     )
                 ''')
-                # 인벤토리 테이블
+                # 인벤토리 테이블 (아이템 정보 제거, 단순 소지 정보로 유지)
                 c.execute('''
                     CREATE TABLE IF NOT EXISTS inventory (
                         discord_id TEXT,
                         item_code TEXT,
                         quantity INTEGER DEFAULT 0,
                         PRIMARY KEY (discord_id, item_code),
-                        FOREIGN KEY (discord_id) REFERENCES characters (discord_id)
+                        FOREIGN KEY (discord_id) REFERENCES characters (discord_id),
+                        FOREIGN KEY (item_code) REFERENCES items (item_code)
+                    )
+                ''')
+                # 새로운 아이템 테이블 추가
+                c.execute('''
+                    CREATE TABLE IF NOT EXISTS items (
+                        item_code TEXT PRIMARY KEY,
+                        item_name TEXT NOT NULL,
+                        buy_gold INTEGER DEFAULT 0,    -- 구매 시 필요한 골드
+                        sell_gold INTEGER DEFAULT 0,   -- 판매 시 얻는 골드
+                        difficulty INTEGER CHECK(difficulty >= 1 AND difficulty <= 10) -- 획득 난이도 (1~10)
                     )
                 ''')
                 conn.commit()
@@ -69,6 +80,79 @@ class Database:
                 print(f"테이블 생성 오류: {e}")
             finally:
                 conn.close()
+
+    # 기존 메서드들은 그대로 유지되며, 아이템 관련 메서드 추가
+    def add_item_info(self, item_code: str, item_name: str, buy_gold: int, sell_gold: int, difficulty: int):
+        """아이템 정보 추가"""
+        if not (1 <= difficulty <= 10):
+            print("획득 난이도는 1~10 사이여야 합니다.")
+            return False
+        conn = self.create_connection()
+        if conn:
+            try:
+                c = conn.cursor()
+                c.execute("""
+                    INSERT OR REPLACE INTO items (item_code, item_name, buy_gold, sell_gold, difficulty)
+                    VALUES (?, ?, ?, ?, ?)
+                """, (item_code, item_name, buy_gold, sell_gold, difficulty))
+                conn.commit()
+                return True
+            except Error as e:
+                print(f"아이템 정보 추가 오류: {e}")
+                return False
+            finally:
+                conn.close()
+        return False
+
+    def get_item_info(self, item_code: str):
+        """아이템 정보 조회"""
+        conn = self.create_connection()
+        if conn:
+            try:
+                c = conn.cursor()
+                c.execute("""
+                    SELECT item_name, buy_gold, sell_gold, difficulty 
+                    FROM items WHERE item_code = ?
+                """, (item_code,))
+                result = c.fetchone()
+                if result:
+                    return {
+                        "item_name": result[0],
+                        "buy_gold": result[1],
+                        "sell_gold": result[2],
+                        "difficulty": result[3]
+                    }
+                return None
+            except Error as e:
+                print(f"아이템 정보 조회 오류: {e}")
+                return None
+            finally:
+                conn.close()
+        return None
+
+    def get_all_items(self):
+        """모든 아이템 정보 조회"""
+        conn = self.create_connection()
+        if conn:
+            try:
+                c = conn.cursor()
+                c.execute("SELECT item_code, item_name, buy_gold, sell_gold, difficulty FROM items")
+                results = c.fetchall()
+                return [
+                    {
+                        "item_code": row[0],
+                        "item_name": row[1],
+                        "buy_gold": row[2],
+                        "sell_gold": row[3],
+                        "difficulty": row[4]
+                    } for row in results
+                ]
+            except Error as e:
+                print(f"모든 아이템 조회 오류: {e}")
+                return []
+            finally:
+                conn.close()
+        return []
 
     def register_user(self, discord_id: str):
         """유저 등록"""
@@ -139,7 +223,7 @@ class Database:
                     stats.get("hp", current.get("hp", 20)),
                     stats.get("mp", current.get("mp", 10)),
                     stats.get("atk", current.get("atk", 5)),
-                    stats.get("def", current.get("def", 5)),
+                    stats.get("defen", current.get("defen", 5)),
                     stats.get("dex", current.get("dex", 5)),
                     stats.get("int", current.get("int", 5)),
                     stats.get("fai", current.get("fai", 5)),
@@ -223,4 +307,4 @@ class Database:
                 return {}
             finally:
                 conn.close()
-        return
+        return{}

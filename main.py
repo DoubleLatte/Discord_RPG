@@ -44,8 +44,9 @@ class MyBot(commands.Bot):
         
         self.config = config
         self.initial_extensions = [
-            "command.dev",
-			"command.rpg"  	# 개발 명령어 추가
+			"command.rpg",
+            "command.shop"
+            # 개발 명령어 추가
             # 추가 확장기능은 여기에 "폴더.파일명" 형식으로 추가
         ]
 
